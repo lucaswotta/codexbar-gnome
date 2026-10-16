@@ -68,7 +68,7 @@ export default class CodexBarExtension extends Extension {
     this._copyTimeouts = [];
 
     this._applyLanguage();
-    this._indicator = new PanelMenu.Button(0.0, _("CodexBar"), false);
+    this._indicator = new PanelMenu.Button(0.5, _("CodexBar"), false);
 
     this._iconBox = new St.BoxLayout({
       style_class: "codexbar-panel-icon-box",
@@ -111,13 +111,20 @@ export default class CodexBarExtension extends Extension {
     this._panelHideId = null;
     this._panelLabels = [];
     this._progressBars = [];
+    this._panelSegments = [];
     this._indicator.connectObject(
       "notify::hover", () => this._onPanelHover(),
+      // Runs before PanelMenu.Button's vfunc_event opens the menu, so the tab
+      // can be switched to the provider that was clicked first.
+      "event", (actor, event) => this._onPanelEvent(event),
       this
     );
     this._indicator.menu.connectObject(
       "open-state-changed", (menu, open) => {
         if (open) this._animateMenuContent(false);
+        // Keep the numbers out while the menu is open so the button (and the
+        // menu anchored to it) doesn't shift; resume the countdown on close.
+        this._onPanelHover();
       },
       this
     );
@@ -254,6 +261,7 @@ export default class CodexBarExtension extends Extension {
       this._panelHideId = null;
     }
     this._panelLabels = null;
+    this._panelSegments = null;
     this._progressBars = null;
     this._panelIntroDone = false;
     this._panelRevealed = false;
@@ -599,7 +607,7 @@ export default class CodexBarExtension extends Extension {
     if (!this._panelTextBox) return;
 
     const shown = (this._providers || [])
-      .map((provider, index) => ({ provider, entry: this._providersData[index] }))
+      .map((provider, index) => ({ provider, index, entry: this._providersData[index] }))
       .filter(({ provider }) => provider.showInPanel);
 
     this._iconBox.visible = shown.length === 0;
@@ -617,6 +625,7 @@ export default class CodexBarExtension extends Extension {
         : `Panel: ${shown.length} provider text segment(s)`,
     );
     this._panelLabels = [];
+    this._panelSegments = [];
 
     const compact = this._settings.get_boolean("panel-compact-text");
     if (compact) this._panelTextBox.add_style_class_name("codexbar-panel-compact");
@@ -636,7 +645,7 @@ export default class CodexBarExtension extends Extension {
     }
 
     const displayMode = this._settings.get_string("display-mode");
-    shown.forEach(({ provider, entry }) => {
+    shown.forEach(({ provider, index, entry }) => {
       const segment = new St.BoxLayout({
         orientation: Clutter.Orientation.HORIZONTAL,
         style_class: "codexbar-panel-segment",
@@ -671,7 +680,44 @@ export default class CodexBarExtension extends Extension {
       }
       segment.add_child(label);
       this._panelTextBox.add_child(segment);
+      this._panelSegments.push({ segment, index });
     });
+  }
+
+  /** Clicking a provider's logo or text opens the menu on that provider's tab. */
+  _onPanelEvent(event) {
+    const type = event.type();
+    if (
+      type !== Clutter.EventType.BUTTON_PRESS &&
+      type !== Clutter.EventType.TOUCH_BEGIN
+    )
+      return Clutter.EVENT_PROPAGATE;
+    if (this._indicator.menu.isOpen) return Clutter.EVENT_PROPAGATE;
+
+    const index = this._panelProviderIndexAt(...event.get_coords());
+    if (index !== null && index !== this._activeProviderIndex) {
+      this._activeProviderIndex = index;
+      // Menu only: rebuilding the panel here would destroy the clicked actor.
+      this._updateUI(false);
+    }
+    return Clutter.EVENT_PROPAGATE;
+  }
+
+  /** Provider whose panel segment is closest to the pointer (gaps included). */
+  _panelProviderIndexAt(x, y) {
+    let best = null;
+    let bestDistance = Infinity;
+    for (const { segment, index } of this._panelSegments || []) {
+      const [ok, localX] = segment.transform_stage_point(x, y);
+      if (!ok) continue;
+      const distance =
+        localX < 0 ? -localX : localX > segment.width ? localX - segment.width : 0;
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        best = index;
+      }
+    }
+    return best;
   }
 
   _revealOnHover() {
@@ -700,6 +746,7 @@ export default class CodexBarExtension extends Extension {
       this._setPanelRevealed(true);
       return;
     }
+    if (this._indicator.menu.isOpen) return;
     const delay = this._settings.get_int("panel-hide-delay");
     this._panelHideId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, delay, () => {
       this._panelHideId = null;
@@ -849,10 +896,10 @@ export default class CodexBarExtension extends Extension {
   /**
    * Update the indicator menu UI.
    */
-  _updateUI() {
+  _updateUI(updatePanel = true) {
     if (!this._indicator) return;
 
-    this._updatePanel();
+    if (updatePanel) this._updatePanel();
     this._tabsContainer.destroy_all_children();
     this._contentBox.destroy_all_children();
     this._progressBars = [];

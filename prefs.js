@@ -548,7 +548,7 @@ const CodexBarPrefsPage = GObject.registerClass(
       bindSwitch(
         "panel-compact-text",
         _("Compact Top Bar Text"),
-        _("Smaller, lighter text and logos in the top bar"),
+        _("Smaller, lighter text, with logos sized and spaced like the system icons"),
       );
       bindSwitch(
         "use-accent-color",

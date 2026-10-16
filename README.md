@@ -139,7 +139,9 @@ You can choose how metrics are displayed:
 
 Under **Top Bar & Appearance** in the preferences:
 - **Show Numbers Only on Hover**: keep only the provider logos in the top bar; the usage text slides out while the pointer is over them and folds back after **Hide After (seconds)** (15 by default).
-- **Compact Top Bar Text**: smaller, lighter text and logos.
+- **Compact Top Bar Text**: smaller, lighter text, with logos sized and spaced like the system icons.
+
+Clicking a provider's logo (or its text) opens the menu directly on that provider's tab.
 - **Use System Accent Color**: usage bars follow the accent color from Settings › Appearance (on by default; off restores the classic blue).
 - **Warning Colors**: yellow, orange and red as usage approaches the limit (on by default).
 - **Animations**: bars grow when the menu opens, tab changes fade in and the hover text slides (on by default; GNOME's global animation switch is also honored).

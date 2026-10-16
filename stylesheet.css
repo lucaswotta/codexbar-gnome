@@ -174,8 +174,13 @@
 }
 
 /* panel-compact-text */
+/* Logos sized and spaced like the system status icons (Wi-Fi, volume…). */
+.codexbar-panel-compact {
+    spacing: 4px;
+}
+
 .codexbar-panel-compact .codexbar-panel-segment {
-    margin: 0 4px;
+    margin: 0;
 }
 
 .codexbar-panel-compact .codexbar-panel-text {
@@ -184,5 +189,5 @@
 }
 
 .codexbar-panel-compact .codexbar-panel-logo {
-    icon-size: 12px;
+    icon-size: 1.091em;
 }
