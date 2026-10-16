@@ -39,6 +39,32 @@
       <default>true</default>
       <summary>Whether to show provider-supplied detail sections</summary>
     </key>
+    <key name="panel-reveal-on-hover" type="b">
+      <default>false</default>
+      <summary>Show panel numbers only on hover</summary>
+      <description>Keep only the provider logos in the top bar and reveal the usage text while the pointer is over them.</description>
+    </key>
+    <key name="panel-hide-delay" type="i">
+      <range min="1" max="120"/>
+      <default>15</default>
+      <summary>Seconds the panel numbers stay after the pointer leaves</summary>
+    </key>
+    <key name="panel-compact-text" type="b">
+      <default>false</default>
+      <summary>Use smaller, lighter text and logos in the top bar</summary>
+    </key>
+    <key name="use-accent-color" type="b">
+      <default>true</default>
+      <summary>Color usage bars with the system accent color</summary>
+    </key>
+    <key name="usage-warning-colors" type="b">
+      <default>true</default>
+      <summary>Turn usage bars yellow, orange and red near the limit</summary>
+    </key>
+    <key name="animations" type="b">
+      <default>true</default>
+      <summary>Animate panel numbers, usage bars and tab changes</summary>
+    </key>
     <key name="dev-custom-output-enabled" type="b">
       <default>false</default>
       <summary>Enable developer custom output simulation</summary>

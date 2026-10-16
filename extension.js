@@ -105,6 +105,23 @@ export default class CodexBarExtension extends Extension {
     this._panelBox.add_child(this._percentLabel);
     this._indicator.add_child(this._panelBox);
 
+    // Optional "reveal on hover": logos stay put, numbers slide out while the
+    // pointer is over them and collapse panel-hide-delay seconds after it leaves.
+    this._panelRevealed = false;
+    this._panelHideId = null;
+    this._panelLabels = [];
+    this._progressBars = [];
+    this._indicator.connectObject(
+      "notify::hover", () => this._onPanelHover(),
+      this
+    );
+    this._indicator.menu.connectObject(
+      "open-state-changed", (menu, open) => {
+        if (open) this._animateMenuContent(false);
+      },
+      this
+    );
+
     this._headerBox = new St.BoxLayout({
       style_class: "codexbar-header",
       orientation: Clutter.Orientation.HORIZONTAL,
@@ -174,6 +191,13 @@ export default class CodexBarExtension extends Extension {
         this._updateUI();
         this._refreshData();
       },
+      "changed::panel-reveal-on-hover", () => {
+        this._panelRevealed = false;
+        this._updatePanel();
+      },
+      "changed::panel-compact-text", () => this._updatePanel(),
+      "changed::use-accent-color", () => this._updateUI(),
+      "changed::usage-warning-colors", () => this._updateUI(),
       "changed::dev-custom-output-enabled", () => this._onSettingsChanged(),
       "changed::dev-custom-output-provider-name", () => this._onSettingsChanged(),
       "changed::dev-custom-output-json", () => this._onSettingsChanged(),
@@ -225,6 +249,14 @@ export default class CodexBarExtension extends Extension {
       GLib.source_remove(this._panelTickId);
       this._panelTickId = null;
     }
+    if (this._panelHideId) {
+      GLib.source_remove(this._panelHideId);
+      this._panelHideId = null;
+    }
+    this._panelLabels = null;
+    this._progressBars = null;
+    this._panelIntroDone = false;
+    this._panelRevealed = false;
     if (this._copyTimeouts) {
       this._copyTimeouts.forEach((id) => GLib.source_remove(id));
       this._copyTimeouts = null;
@@ -584,6 +616,24 @@ export default class CodexBarExtension extends Extension {
         ? `Panel: battery at ${this._percentLabel?.text}`
         : `Panel: ${shown.length} provider text segment(s)`,
     );
+    this._panelLabels = [];
+
+    const compact = this._settings.get_boolean("panel-compact-text");
+    if (compact) this._panelTextBox.add_style_class_name("codexbar-panel-compact");
+    else this._panelTextBox.remove_style_class_name("codexbar-panel-compact");
+
+    // First appearance (login): fade the logos in.
+    if (shown.length > 0 && !this._panelIntroDone) {
+      this._panelIntroDone = true;
+      if (this._animationsEnabled()) {
+        this._panelTextBox.opacity = 0;
+        this._panelTextBox.ease({
+          opacity: 255,
+          duration: 600,
+          mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+        });
+      }
+    }
 
     const displayMode = this._settings.get_string("display-mode");
     shown.forEach(({ provider, entry }) => {
@@ -608,11 +658,160 @@ export default class CodexBarExtension extends Extension {
       }
       if (!logo) text = `${provider.name} ${text}`;
 
-      segment.add_child(
-        new St.Label({ text, y_align: Clutter.ActorAlign.CENTER }),
-      );
+      const label = new St.Label({
+        text,
+        style_class: "codexbar-panel-text",
+        y_align: Clutter.ActorAlign.CENTER,
+      });
+      label.opacity = this._panelTextOpacity();
+      // Without a logo there would be nothing left to hover, so keep the text.
+      if (logo && this._revealOnHover()) {
+        label.visible = this._panelRevealed;
+        this._panelLabels.push(label);
+      }
+      segment.add_child(label);
       this._panelTextBox.add_child(segment);
     });
+  }
+
+  _revealOnHover() {
+    return this._settings.get_boolean("panel-reveal-on-hover");
+  }
+
+  _animationsEnabled() {
+    return this._settings.get_boolean("animations");
+  }
+
+  /** Compact text keeps the theme color and is dimmed like other secondary text. */
+  _panelTextOpacity() {
+    return this._settings.get_boolean("panel-compact-text")
+      ? SECONDARY_TEXT_OPACITY
+      : 255;
+  }
+
+  _onPanelHover() {
+    if (!this._indicator) return;
+    if (this._panelHideId) {
+      GLib.source_remove(this._panelHideId);
+      this._panelHideId = null;
+    }
+    if (!this._revealOnHover()) return;
+    if (this._indicator.hover) {
+      this._setPanelRevealed(true);
+      return;
+    }
+    const delay = this._settings.get_int("panel-hide-delay");
+    this._panelHideId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, delay, () => {
+      this._panelHideId = null;
+      this._setPanelRevealed(false);
+      return GLib.SOURCE_REMOVE;
+    });
+  }
+
+  _setPanelRevealed(revealed) {
+    if (this._panelRevealed === revealed) return;
+    this._panelRevealed = revealed;
+    const labels = this._panelLabels || [];
+    // Cascade: open left to right, close in reverse.
+    labels.forEach((label, i) => {
+      const order = revealed ? i : labels.length - 1 - i;
+      if (revealed) this._expandPanelLabel(label, order * 60);
+      else this._collapsePanelLabel(label, order * 50);
+    });
+  }
+
+  /** Slide the text out of its logo: width from 0 to natural, plus a fade. */
+  _expandPanelLabel(label, delay) {
+    label.remove_all_transitions();
+    const targetOpacity = this._panelTextOpacity();
+    label.set_width(-1);
+    label.opacity = targetOpacity;
+    label.visible = true;
+    if (!this._animationsEnabled()) return;
+    const [, natWidth] = label.get_preferred_width(-1);
+    label.clip_to_allocation = true;
+    label.set_width(0);
+    label.opacity = 0;
+    label.ease({
+      width: natWidth,
+      opacity: targetOpacity,
+      delay,
+      duration: 380,
+      mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
+      onComplete: () => label.set_width(-1),
+    });
+  }
+
+  /** Fold the text back into its logo. */
+  _collapsePanelLabel(label, delay) {
+    label.remove_all_transitions();
+    if (!this._animationsEnabled()) {
+      label.visible = false;
+      return;
+    }
+    label.clip_to_allocation = true;
+    label.ease({
+      width: 0,
+      opacity: 0,
+      delay,
+      duration: 320,
+      mode: Clutter.AnimationMode.EASE_IN_OUT_CUBIC,
+      onComplete: () => {
+        label.visible = false;
+        label.set_width(-1);
+      },
+    });
+  }
+
+  /**
+   * Usage bars grow from zero to their value when the menu opens; on a tab
+   * change the content also fades and slides in.
+   */
+  _animateMenuContent(slide) {
+    if (!this._contentBox || !this._animationsEnabled()) return;
+    if (slide) {
+      this._contentBox.remove_all_transitions();
+      this._contentBox.opacity = 0;
+      this._contentBox.translation_x = 14;
+      this._contentBox.ease({
+        opacity: 255,
+        translation_x: 0,
+        duration: 220,
+        mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
+      });
+    }
+    (this._progressBars || []).forEach(({ bar, width }, i) => {
+      bar.remove_all_transitions();
+      bar.set_width(0);
+      bar.ease({
+        width,
+        delay: 80 + i * 70,
+        duration: 650,
+        mode: Clutter.AnimationMode.EASE_OUT_EXPO,
+      });
+    });
+  }
+
+  /** Bar color: system accent (or classic blue), with optional warning tiers. */
+  _usageColor(percent, displayMode) {
+    if (this._settings.get_boolean("usage-warning-colors")) {
+      if (displayMode === "remaining") {
+        if (percent < 10) return "#e01b24";
+        if (percent < 25) return "#ff7800";
+        if (percent < 50) return "#f6d32d";
+      } else {
+        if (percent > 90) return "#e01b24";
+        if (percent > 75) return "#ff7800";
+        if (percent > 50) return "#f6d32d";
+      }
+    }
+    return this._accentColor();
+  }
+
+  _accentColor() {
+    return this._settings.get_boolean("use-accent-color")
+      ? "-st-accent-color"
+      : "#3584e4";
   }
 
   /**
@@ -656,6 +855,7 @@ export default class CodexBarExtension extends Extension {
     this._updatePanel();
     this._tabsContainer.destroy_all_children();
     this._contentBox.destroy_all_children();
+    this._progressBars = [];
 
     const displayMode = this._settings.get_string("display-mode");
     const firstRun = this._settings.get_boolean("first-run");
@@ -741,8 +941,10 @@ export default class CodexBarExtension extends Extension {
         btn.add_style_class_name("codexbar-tab-active");
       }
       btn.connect("clicked", () => {
+        if (this._activeProviderIndex === index) return;
         this._activeProviderIndex = index;
         this._updateUI();
+        this._animateMenuContent(true);
       });
       this._tabsContainer.add_child(btn);
     });
@@ -758,16 +960,7 @@ export default class CodexBarExtension extends Extension {
         ),
       );
 
-      let color = "#3584e4"; // Adwaita Blue
-      if (displayMode === "remaining") {
-        if (activePercent < 10) color = "#e01b24";
-        else if (activePercent < 25) color = "#ff7800";
-        else if (activePercent < 50) color = "#f6d32d";
-      } else {
-        if (activePercent > 90) color = "#e01b24";
-        else if (activePercent > 75) color = "#ff7800";
-        else if (activePercent > 50) color = "#f6d32d";
-      }
+      const color = this._usageColor(activePercent, displayMode);
 
       this._iconFill.set_width(fillWidth);
       this._iconFill.set_style(`background-color: ${color};`);
@@ -938,24 +1131,17 @@ export default class CodexBarExtension extends Extension {
             ? _("%s%% left").format(formatPercent(percent))
             : _("%s%% used").format(formatPercent(percent));
 
-        let color = "#3584e4";
-        if (displayMode === "remaining") {
-          if (percent < 10) color = "#e01b24";
-          else if (percent < 25) color = "#ff7800";
-          else if (percent < 50) color = "#f6d32d";
-        } else {
-          if (percent > 90) color = "#e01b24";
-          else if (percent > 75) color = "#ff7800";
-          else if (percent > 50) color = "#f6d32d";
-        }
+        const color = this._usageColor(percent, displayMode);
 
         const fullWidth = 290;
         const barWidth = Math.max(1, Math.round((percent / 100) * fullWidth));
 
         let progressBar = new St.Widget({
           style_class: "codexbar-progress-bar",
-          style: `width: ${barWidth}px; background-color: ${color};`,
+          style: `background-color: ${color};`,
+          width: barWidth,
         });
+        this._progressBars.push({ bar: progressBar, width: barWidth });
         progressContainer.add_child(progressBar);
         this._contentBox.add_child(progressContainer);
 
@@ -1260,7 +1446,7 @@ export default class CodexBarExtension extends Extension {
     let cmdLabel = new St.Label({
       text: commandText,
       style:
-        "font-family: monospace; font-size: 0.8em; color: #3584e4; y-align: middle;",
+        `font-family: monospace; font-size: 0.8em; color: ${this._accentColor()}; y-align: middle;`,
       x_expand: true,
     });
     cmdLabel.clutter_text.ellipsize = Pango.EllipsizeMode.END;
@@ -1495,7 +1681,7 @@ export default class CodexBarExtension extends Extension {
     let closeBtn = new St.Button({
       label: _("Get Started!"),
       style_class: "codexbar-tab",
-      style: "background-color: #3584e4;",
+      style: `background-color: ${this._accentColor()};`,
     });
     closeBtn.connect("clicked", () => {
       this._settings.set_boolean("first-run", false);

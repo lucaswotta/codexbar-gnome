@@ -160,10 +160,29 @@
 }
 
 .codexbar-panel-segment {
-    spacing: 4px;
+    spacing: 0;
     margin: 0 6px;
+}
+
+/* The logo-to-text gap lives on the text so it folds away with it. */
+.codexbar-panel-text {
+    padding-left: 4px;
 }
 
 .codexbar-panel-logo {
     icon-size: 16px;
+}
+
+/* panel-compact-text */
+.codexbar-panel-compact .codexbar-panel-segment {
+    margin: 0 4px;
+}
+
+.codexbar-panel-compact .codexbar-panel-text {
+    font-size: 0.82em;
+    font-weight: 400;
+}
+
+.codexbar-panel-compact .codexbar-panel-logo {
+    icon-size: 12px;
 }

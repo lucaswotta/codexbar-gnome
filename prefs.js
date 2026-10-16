@@ -128,6 +128,7 @@ const CodexBarPrefsPage = GObject.registerClass(
       this._providerRows = [];
 
       this.add(this._buildSettingsGroup());
+      this.add(this._buildPanelGroup());
       this.add(this._buildProvidersGroup());
       this.add(this._buildDeveloperGroup());
       this.add(this._buildContributeGroup());
@@ -494,6 +495,76 @@ const CodexBarPrefsPage = GObject.registerClass(
         Gio.SettingsBindFlags.DEFAULT,
       );
       group.add(showProviderDetailsRow);
+
+      return group;
+    }
+
+    /**
+     * Build the top bar & appearance group (hover reveal, compact text,
+     * colors, animations).
+     */
+    _buildPanelGroup() {
+      const group = new Adw.PreferencesGroup({
+        title: _("Top Bar & Appearance"),
+      });
+
+      const bindSwitch = (key, title, subtitle) => {
+        const row = new Adw.SwitchRow({ title, subtitle });
+        this._settings.bind(key, row, "active", Gio.SettingsBindFlags.DEFAULT);
+        group.add(row);
+        return row;
+      };
+
+      const revealRow = bindSwitch(
+        "panel-reveal-on-hover",
+        _("Show Numbers Only on Hover"),
+        _("Keep only the provider logos in the top bar; usage appears while the pointer is over them"),
+      );
+
+      const hideDelayRow = new Adw.SpinRow({
+        title: _("Hide After (seconds)"),
+        subtitle: _("How long the numbers stay after the pointer leaves"),
+        adjustment: new Gtk.Adjustment({
+          lower: 1,
+          upper: 120,
+          step_increment: 1,
+          value: this._settings.get_int("panel-hide-delay"),
+        }),
+      });
+      this._settings.bind(
+        "panel-hide-delay",
+        hideDelayRow.adjustment,
+        "value",
+        Gio.SettingsBindFlags.DEFAULT,
+      );
+      revealRow.bind_property(
+        "active",
+        hideDelayRow,
+        "sensitive",
+        GObject.BindingFlags.SYNC_CREATE,
+      );
+      group.add(hideDelayRow);
+
+      bindSwitch(
+        "panel-compact-text",
+        _("Compact Top Bar Text"),
+        _("Smaller, lighter text and logos in the top bar"),
+      );
+      bindSwitch(
+        "use-accent-color",
+        _("Use System Accent Color"),
+        _("Color the usage bars with the accent color chosen in Settings › Appearance"),
+      );
+      bindSwitch(
+        "usage-warning-colors",
+        _("Warning Colors"),
+        _("Turn the bars yellow, orange and red as usage approaches the limit"),
+      );
+      bindSwitch(
+        "animations",
+        _("Animations"),
+        _("Animate the top bar numbers, usage bars and tab changes"),
+      );
 
       return group;
     }
