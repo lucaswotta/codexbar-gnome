@@ -174,9 +174,10 @@
 }
 
 /* panel-compact-text */
-/* Logos sized and spaced like the system status icons (Wi-Fi, volume…). */
+/* Logos drawn edge to edge, so they're shrunk and spaced to look like the
+   system status icons (Wi-Fi, volume…), which have padding in their canvas. */
 .codexbar-panel-compact {
-    spacing: 4px;
+    spacing: 14px;
 }
 
 .codexbar-panel-compact .codexbar-panel-segment {
@@ -189,5 +190,5 @@
 }
 
 .codexbar-panel-compact .codexbar-panel-logo {
-    icon-size: 1.091em;
+    icon-size: 0.8em;
 }
