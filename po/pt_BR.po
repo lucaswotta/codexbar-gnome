@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: CodexBar\n"
 "Report-Msgid-Bugs-To: https://github.com/InledGroup/codexbar-gnome/issues\n"
-"POT-Creation-Date: 2026-10-20 00:37-0300\n"
+"POT-Creation-Date: 2026-10-20 00:38-0300\n"
 "PO-Revision-Date: 2026-10-16 20:30-0300\n"
 "Last-Translator: Lucas Motta "
 "<104871819+lucaswotta@users.noreply.github.com>\n"
@@ -13,179 +13,179 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: extension.js:71 extension.js:131 extension.js:448 extension.js:589
+#: extension.js:71 extension.js:138 extension.js:456 extension.js:597
 msgid "CodexBar"
 msgstr ""
 
-#: extension.js:380
+#: extension.js:388
 msgid "CodexBar (Refreshing...)"
 msgstr "CodexBar (atualizando...)"
 
-#: extension.js:465
+#: extension.js:473
 msgid "No token found in keyring"
 msgstr "Nenhum token encontrado no chaveiro"
 
-#: extension.js:483
+#: extension.js:491
 msgid "Weekly Window"
 msgstr "Janela semanal"
 
-#: extension.js:484 localize.js:122
+#: extension.js:492 localize.js:122
 #, javascript-format
 msgid "%d-Day Window"
 msgstr "Janela de %d dias"
 
-#: extension.js:487 localize.js:121
+#: extension.js:495 localize.js:121
 #, javascript-format
 msgid "%d-Hour Window"
 msgstr "Janela de %d horas"
 
-#: extension.js:490
+#: extension.js:498
 msgid "Usage Window"
 msgstr "Janela de uso"
 
-#: extension.js:506
+#: extension.js:514
 msgid "Unknown API error"
 msgstr "Erro desconhecido da API"
 
-#: extension.js:514
+#: extension.js:522
 msgid "No command configured"
 msgstr "Nenhum comando configurado"
 
-#: extension.js:572
+#: extension.js:580
 msgid "Unknown CLI error"
 msgstr "Erro desconhecido da CLI"
 
-#: extension.js:935
+#: extension.js:982
 msgid "Unknown"
 msgstr "Desconhecido"
 
-#: extension.js:971
+#: extension.js:1018
 msgid "No providers configured. Click settings."
 msgstr "Nenhum provedor configurado. Abra as configurações."
 
-#: extension.js:980
+#: extension.js:1027
 msgid "Loading data..."
 msgstr "Carregando dados..."
 
-#: extension.js:991
+#: extension.js:1038
 #, javascript-format
 msgid "Error: %s"
 msgstr "Erro: %s"
 
-#: extension.js:999
+#: extension.js:1046
 msgid "Stderr:"
 msgstr "Stderr:"
 
-#: extension.js:1025
+#: extension.js:1072
 msgid "Invalid JSON format (missing usage)"
 msgstr "JSON inválido (falta o campo usage)"
 
-#: extension.js:1072
+#: extension.js:1119
 #, javascript-format
 msgid "Updated %s"
 msgstr "Atualizado %s"
 
-#: extension.js:1097
+#: extension.js:1144
 msgid "Credits"
 msgstr "Créditos"
 
-#: extension.js:1100 extension.js:1244
+#: extension.js:1147 extension.js:1291
 msgid "Balance"
 msgstr "Saldo"
 
-#: extension.js:1108
+#: extension.js:1155
 msgid "Code review"
 msgstr "Code review"
 
-#: extension.js:1131
+#: extension.js:1178
 #, javascript-format
 msgid "%s%% left"
 msgstr "%s%% restante"
 
-#: extension.js:1132
+#: extension.js:1179
 #, javascript-format
 msgid "%s%% used"
 msgstr "%s%% usado"
 
-#: extension.js:1187
+#: extension.js:1234
 #, javascript-format
 msgid "%d%% in reserve"
 msgstr "%d%% de folga"
 
-#: extension.js:1188
+#: extension.js:1235
 #, javascript-format
 msgid "%d%% over pace"
 msgstr "%d%% acima do ritmo"
 
-#: extension.js:1195
+#: extension.js:1242
 msgid "Lasts until reset"
 msgstr "Dura até zerar"
 
-#: extension.js:1196
+#: extension.js:1243
 msgid "May run out before reset"
 msgstr "Pode acabar antes de zerar"
 
-#: extension.js:1222
+#: extension.js:1269
 msgid "Limit reset credits"
 msgstr "Créditos de reset de limite"
 
-#: extension.js:1230
+#: extension.js:1277
 msgid "1 available"
 msgstr "1 disponível"
 
-#: extension.js:1231
+#: extension.js:1278
 #, javascript-format
 msgid "%d available"
 msgstr "%d disponíveis"
 
-#: extension.js:1458 extension.js:1465
+#: extension.js:1505 extension.js:1512
 msgid "Copy"
 msgstr "Copiar"
 
-#: extension.js:1463
+#: extension.js:1510
 msgid "Copied!"
 msgstr "Copiado!"
 
-#: extension.js:1496
+#: extension.js:1543
 msgid "Welcome to CodexBar!"
 msgstr "Bem-vindo ao CodexBar!"
 
-#: extension.js:1509
+#: extension.js:1556
 msgid "Language:"
 msgstr "Idioma:"
 
-#: extension.js:1536
+#: extension.js:1583
 msgid "Please configure your system dependencies:"
 msgstr "Configure as dependências do sistema:"
 
-#: extension.js:1551 extension.js:1593 extension.js:1641
+#: extension.js:1598 extension.js:1640 extension.js:1688
 msgid "● Installed"
 msgstr "● Instalado"
 
-#: extension.js:1551
+#: extension.js:1598
 msgid "● Missing"
 msgstr "● Ausente"
 
-#: extension.js:1555
+#: extension.js:1602
 msgid "1. CodexBar CLI  "
 msgstr "1. CLI do CodexBar  "
 
-#: extension.js:1569
+#: extension.js:1616
 msgid "Required to query AI usage metrics."
 msgstr "Necessária para consultar o uso das IAs."
 
-#: extension.js:1594
+#: extension.js:1641
 msgid ""
 "● Optional (only for codex users and only if you want not to find and copy "
 "manually a cookie value)"
 msgstr ""
 "● Opcional (só para quem usa Codex e não quer copiar o cookie manualmente)"
 
-#: extension.js:1598
+#: extension.js:1645
 msgid "2. Cookie Importer  "
 msgstr "2. Importador de cookies  "
 
-#: extension.js:1612
+#: extension.js:1659
 msgid ""
 "Enables browser auto cookie extraction for Codex (ChatGPT). This cookie is "
 "used to authenticate on the usage api of OpenAI"
@@ -193,15 +193,15 @@ msgstr ""
 "Extrai automaticamente o cookie do Codex (ChatGPT) do navegador. Esse cookie "
 "autentica na API de uso da OpenAI"
 
-#: extension.js:1642
+#: extension.js:1689
 msgid "● Optional (for Antigravity)"
 msgstr "● Opcional (para o Antigravity)"
 
-#: extension.js:1646
+#: extension.js:1693
 msgid "3. AGY Server Certificate Trust Helper  "
 msgstr "3. Assistente de certificado do servidor AGY  "
 
-#: extension.js:1660
+#: extension.js:1707
 msgid ""
 "Required to trust the local Antigravity server certificate. Requires "
 "privilegie elevation"
@@ -209,7 +209,7 @@ msgstr ""
 "Necessário para confiar no certificado do servidor local do Antigravity. "
 "Pede privilégio de administrador"
 
-#: extension.js:1682
+#: extension.js:1729
 msgid "Get Started!"
 msgstr "Começar!"
 
@@ -409,8 +409,11 @@ msgid "Compact Top Bar Text"
 msgstr "Texto compacto na barra superior"
 
 #: prefs.js:551
-msgid "Smaller, lighter text and logos in the top bar"
-msgstr "Texto e logos menores e mais leves na barra superior"
+msgid ""
+"Smaller, lighter text, with logos sized and spaced like the system icons"
+msgstr ""
+"Texto menor e mais leve, com logos no tamanho e espaçamento dos ícones do "
+"sistema"
 
 #: prefs.js:555
 msgid "Use System Accent Color"
