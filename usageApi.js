@@ -397,12 +397,21 @@ export class UsageApiClient {
             };
 
             const tierKeys = ["primary", "secondary", "tertiary", "quaternary"];
-            extraWindows.forEach((item, idx) => {
-                if (idx < 4) {
-                    const tierName = tierKeys[idx];
-                    mappedTiers[tierName] = mapSingle(item.window);
-                    labels.push(item.title || "Usage Window");
-                }
+            // The CLI sends windows with usageKnown=false (a 5-hour limit that
+            // "does not currently apply") and two entries with the same title
+            // for one pool; both would push the Claude/GPT weekly window out
+            // of the four slots. Keep the higher usage of duplicated titles.
+            const byTitle = new Map();
+            extraWindows.forEach((item) => {
+                if (item?.usageKnown === false) return;
+                const title = item?.title || "Usage Window";
+                const kept = byTitle.get(title);
+                if (!kept || (item.window?.usedPercent ?? 0) > (kept.window?.usedPercent ?? 0))
+                    byTitle.set(title, item);
+            });
+            [...byTitle.values()].slice(0, tierKeys.length).forEach((item, idx) => {
+                mappedTiers[tierKeys[idx]] = mapSingle(item.window);
+                labels.push(item.title || "Usage Window");
             });
 
             return {

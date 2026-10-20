@@ -982,3 +982,31 @@ if (tr("Weekly Window") !== "Weekly Window") throw new Error("en must ignore any
 setCatalog("en", null);
 console.log("✓ Language selection is explicit, with English as the fallback");
 
+// CLI payload with a duplicated "Gemini weekly" title and a 3p 5-hour window
+// flagged usageKnown=false; the Claude/GPT weekly window must still fit.
+const antigravityLimitHit = client.normalizeSummary(
+  {
+    identity: { providerID: "antigravity" },
+    extraRateWindows: [
+      { title: "Gemini 5-hour", window: { usedPercent: 0, windowMinutes: 300 } },
+      { title: "Gemini weekly", window: { usedPercent: 3, windowMinutes: 10080 } },
+      { title: "Gemini weekly", window: { usedPercent: 65, windowMinutes: 10080 } },
+      { title: "Claude/GPT 5-hour", usageKnown: false, window: { usedPercent: 0, windowMinutes: 300 } },
+      { title: "Claude/GPT weekly", window: { usedPercent: 100, windowMinutes: 10080 } },
+    ],
+  },
+  true,
+);
+const expectedAntigravityLabels = ["Gemini 5-hour", "Gemini weekly", "Claude/GPT weekly"];
+if (JSON.stringify(antigravityLimitHit.labels) !== JSON.stringify(expectedAntigravityLabels)) {
+  throw new Error(
+    `Antigravity: expected labels ${JSON.stringify(expectedAntigravityLabels)}, got ${JSON.stringify(antigravityLimitHit.labels)}`,
+  );
+}
+[["primary", 0], ["secondary", 65], ["tertiary", 100], ["quaternary", null]].forEach(([tier, expected]) => {
+  const win = antigravityLimitHit.usage[tier];
+  if (expected === null ? win : !win || Math.abs(win.usedPercent - expected) > 0.0001) {
+    throw new Error(`Antigravity: expected ${tier} at ${expected}% used, got ${win ? win.usedPercent : "null"}`);
+  }
+});
+console.log("✓ Antigravity keeps the Claude/GPT weekly window and drops duplicate or unknown ones");
